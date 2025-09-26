@@ -1,0 +1,77 @@
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.template
+
+# SSH Keys and certificates
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+id_*
+known_hosts
+ssh_config
+
+# Ansible vault files
+*.vault
+vault_pass.txt
+.ansible-vault
+ansible-vault-password
+
+# Test files with secrets
+test_ssh_key.txt
+test_*.key
+test_*.pem
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Cache directories
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+*.orig
+
+# Docker volumes and data
+docker-data/
+volumes/
+
+# CI/CD secrets
+ci-secrets/
+deployment-secrets/
+
+# Local configuration overrides
+local.yml
+local.yaml
+local.json
+
+.DS_Store

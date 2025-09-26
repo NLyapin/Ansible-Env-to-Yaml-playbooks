@@ -1,0 +1,61 @@
+---
+- hosts: vds
+  become: false
+  gather_facts: true
+  vars:
+    ansible_run_src_sync_dir: "{{ lookup('ansible.builtin.env', 'CI_PROJECT_DIR', default='/home/nlpn/tests/ansible-crm-integration') }}"
+    lowercase_flag: "{{ '-l' if lowercase | default(false) else '' }}"
+    prefix_flag: "{{ '-p \"' + prefix + '\"' if prefix is defined else '' }}"
+
+  tasks:
+    - name: Read .env file
+      slurp:
+        src: "{{ ansible_run_src_sync_dir }}/.env"
+      register: env_file
+      connection: local
+
+    - name: Convert .env to YAML using Python script
+      ansible.builtin.shell: |
+        python3 {{ ansible_run_src_sync_dir }}/plays/env-to-yaml.py -in {{ ansible_run_src_sync_dir }}/.env {{ lowercase_flag }} {{ prefix_flag }}
+      register: env_yaml
+      connection: local
+
+    - name: Parse YAML environment variables
+      set_fact:
+        env_vars: "{{ env_yaml.stdout | from_yaml }}"
+      connection: local
+
+    - name: Display parsed environment variables count
+      debug:
+        msg: "Parsed {{ env_vars.keys() | list | length }} environment variables from .env file"
+
+    - name: Display all parsed environment variables
+      debug:
+        var: env_vars
+
+- hosts: vds
+  become: false
+  gather_facts: true
+  environment: "{{ env_vars }}"
+
+  tasks:
+    - name: "Ensure deploy script"
+      template:
+        src: files/deploy.sh
+        dest: "/root/deploy.sh"
+        mode: "0700"
+
+    - name: Install rsync
+      yum:
+        name: "rsync"
+        state: latest
+
+    - name: "Run deploy preps"
+      ansible.builtin.shell: "/root/deploy.sh pre"
+
+    - name: "Sync files"
+      connection: local
+      ansible.builtin.shell: "files/deploy.sh ssh_sync"
+
+  roles:
+    - { role: website-php, tags: website-php }
